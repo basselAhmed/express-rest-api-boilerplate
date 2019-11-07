@@ -11,6 +11,9 @@
   "bugs": {
     "url": "https://github.com/aichbauer/express-rest-api-boilerplate/issues"
   },
+  "engines": {
+    "node": "10.16.3"
+  },
   "scripts": {
     "prestart": "yarn run drop-sqlite-db || true",
     "start": "yarn run nodemon",

@@ -1,5 +1,5 @@
 {
-  "name": "express-rest-api-boilerplate",
+  "name": "dummy-backend",
   "version": "0.0.0",
   "author": "Lukas Aichbauer <l.aichbauer@gmail.com>",
   "license": "MIT",
@@ -12,18 +12,18 @@
     "url": "https://github.com/aichbauer/express-rest-api-boilerplate/issues"
   },
   "scripts": {
-    "prestart": "npm run drop-sqlite-db || true",
-    "start": "npm run nodemon",
-    "poststart": "npm run create-sqlite-db",
+    "prestart": "yarn run drop-sqlite-db || true",
+    "start": "yarn run nodemon",
+    "poststart": "yarn run create-sqlite-db",
     "dev": "cross-env NODE_ENV=development node ./api/api.js",
-    "nodemon": "nodemon --exec npm run dev",
+    "nodemon": "nodemon --exec yarn run dev",
     "create-sqlite-db": "shx touch ./db/database.sqlite",
     "drop-sqlite-db": "shx rm ./db/database.sqlite",
     "lint": "eslint ./api/. ./config/. ./test/.",
-    "prepush": "npm test",
-    "pretest": "npm run lint",
+    "prepush": "yarn test",
+    "pretest": "yarn run lint",
     "production": "cross-env NODE_ENV=production node ./api/api.js",
-    "test": "npm run create-sqlite-db; cross-env NODE_ENV=testing jest --coverage; npm run drop-sqlite-db",
+    "test": "yarn run create-sqlite-db; cross-env NODE_ENV=testing jest --coverage; yarn run drop-sqlite-db",
     "test-ci": "jest --coverage --forceExit"
   },
   "jest": {
@@ -44,8 +44,11 @@
     "express-routes-mapper": "^1.0.2",
     "helmet": "^3.12.0",
     "jsonwebtoken": "^8.2.1",
+    "mysql2": "^2.0.0",
+    "project-name-generator": "^2.1.7",
     "sequelize": "^6.0.0",
-    "sqlite3": "^4.0.0"
+    "sqlite3": "^4.0.0",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "cross-env": "^5.1.4",

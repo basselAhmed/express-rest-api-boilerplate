@@ -1,48 +1,39 @@
-const User = require('../models/User');
+// const User = require('../models/User');
 const authService = require('../services/auth.service');
 const bcryptService = require('../services/bcrypt.service');
+const uuidv4 = require('uuid/v4');
+const generate = require('project-name-generator');
+
+const user = {
+  id: '602ed20d9c06dfd49e000000',
+  email: 'frontend@ninja.com',
+  name: 'Frontend Ninja',
+  avatar: 'https://i.pravatar.cc/100',
+  plan: 'n199',
+};
+
+const total = 100;
+const appsArr = new Array(total).fill({}).map(() => ({
+  id: uuidv4(),
+  title: generate({ words: 3 }).spaced,
+}));
+
+const apps = {
+  total,
+  data: appsArr,
+};
 
 const UserController = () => {
-  const register = async (req, res) => {
-    const { body } = req;
-
-    if (body.password === body.password2) {
-      try {
-        const user = await User.create({
-          email: body.email,
-          password: body.password,
-        });
-        const token = authService().issue({ id: user.id });
-
-        return res.status(200).json({ token, user });
-      } catch (err) {
-        console.log(err);
-        return res.status(500).json({ msg: 'Internal server error' });
-      }
-    }
-
-    return res.status(400).json({ msg: 'Bad Request: Passwords don\'t match' });
-  };
-
   const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (email && password) {
       try {
-        const user = await User
-          .findOne({
-            where: {
-              email,
-            },
-          });
+        const userPassword = bcryptService().password({ password: '12345' });
+        const passwordCorrect = bcryptService().comparePassword(password, userPassword);
 
-        if (!user) {
-          return res.status(400).json({ msg: 'Bad Request: User not found' });
-        }
-
-        if (bcryptService().comparePassword(password, user.password)) {
+        if (email === 'frontend@ninja.com' && passwordCorrect) {
           const token = authService().issue({ id: user.id });
-
           return res.status(200).json({ token, user });
         }
 
@@ -53,26 +44,60 @@ const UserController = () => {
       }
     }
 
-    return res.status(400).json({ msg: 'Bad Request: Email or password is wrong' });
+    return res.status(400).json({ msg: 'Email or password is wrong' });
   };
 
-  const validate = (req, res) => {
-    const { token } = req.body;
-
-    authService().verify(token, (err) => {
-      if (err) {
-        return res.status(401).json({ isvalid: false, err: 'Invalid Token!' });
-      }
-
-      return res.status(200).json({ isvalid: true });
-    });
-  };
-
-  const getAll = async (req, res) => {
+  const me = async (req, res) => {
     try {
-      const users = await User.findAll();
+      return res.status(200).json({ ...user });
+    } catch (err) {
+      console.log(err);
+      return res.status(500).json({ msg: 'Internal server error' });
+    }
+  };
 
-      return res.status(200).json({ users });
+  const getApps = async (req, res) => {
+    const {
+      take, skip, sortBy, direction,
+    } = req.query;
+    try {
+      if (!take || !skip) {
+        return res.status(400).json({ msg: 'Bad request, you must specify pagination params' });
+      }
+      if (direction && direction !== 'asc' && direction !== 'desc') {
+        return res.status(400).json({ msg: 'Not a valid direction' });
+      }
+      if (sortBy && !Object.keys(apps.data[0]).includes(sortBy)) {
+        return res.status(400).json({ msg: 'Not a valid sortBy' });
+      }
+      if (Number(take) < 0 || Number(skip) < 0) {
+        return res.status(400).json({ msg: 'Bad request, not a valid pagination params' });
+      }
+      if (Number(take) >= apps.data.length || Number(skip) >= apps.data.length) {
+        return res.status(200).json({ total: apps.total, data: apps.data });
+      }
+      const arr = apps.data.slice(Number(skip), Number(skip) + Number(take));
+      if (sortBy && direction) {
+        arr.sort((a, b) => {
+          if (direction === 'asc') {
+            if (a[sortBy] < b[sortBy]) {
+              return -1;
+            }
+            if (b[sortBy] < a[sortBy]) {
+              return 1;
+            }
+            return 0;
+          }
+          if (a > b) {
+            return -1;
+          }
+          if (b[sortBy] > a[sortBy]) {
+            return 1;
+          }
+          return 0;
+        });
+      }
+      return res.status(200).json({ total: apps.total, data: arr });
     } catch (err) {
       console.log(err);
       return res.status(500).json({ msg: 'Internal server error' });
@@ -81,10 +106,9 @@ const UserController = () => {
 
 
   return {
-    register,
     login,
-    validate,
-    getAll,
+    me,
+    getApps,
   };
 };
 

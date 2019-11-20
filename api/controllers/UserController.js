@@ -4,18 +4,65 @@ const bcryptService = require('../services/bcrypt.service');
 const uuidv4 = require('uuid/v4');
 const generate = require('project-name-generator');
 
+const total = 100;
+
 const user = {
   id: '602ed20d9c06dfd49e000000',
   email: 'frontend@ninja.com',
   name: 'Frontend Ninja',
   avatar: 'https://i.pravatar.cc/100',
-  plan: 'n199',
+  plan: 'premium',
+  totalApps: total,
+  totalDevices: 3920,
 };
 
-const total = 100;
 const appsArr = new Array(total).fill({}).map(() => ({
   id: uuidv4(),
   title: generate({ words: 3 }).spaced,
+  icon: 'https://picsum.photos/50/50',
+  totalUsers: Math.round(Math.random() * 100000),
+  platforms: {
+    ios: true,
+    android: true,
+    chrome: true,
+    firefox: true,
+    opera: true,
+    safari: true,
+  },
+  chartData: [
+    {
+      label: '2019-11-13',
+      value: Math.round(Math.random() * 1000),
+    },
+    {
+      label: '2019-11-14',
+      value: Math.round(Math.random() * 1000),
+    },
+    {
+      label: '2019-11-15',
+      value: Math.round(Math.random() * 1000),
+    },
+    {
+      label: '2019-11-16',
+      value: Math.round(Math.random() * 1000),
+    },
+    {
+      label: '2019-11-17',
+      value: Math.round(Math.random() * 1000),
+    },
+    {
+      label: '2019-11-18',
+      value: Math.round(Math.random() * 1000),
+    },
+    {
+      label: '2019-11-19',
+      value: Math.round(Math.random() * 1000),
+    },
+    {
+      label: '2019-11-20',
+      value: Math.round(Math.random() * 1000),
+    },
+  ],
 }));
 
 const apps = {
@@ -30,7 +77,10 @@ const UserController = () => {
     if (email && password) {
       try {
         const userPassword = bcryptService().password({ password: '12345' });
-        const passwordCorrect = bcryptService().comparePassword(password, userPassword);
+        const passwordCorrect = bcryptService().comparePassword(
+          password,
+          userPassword,
+        );
 
         if (email === 'frontend@ninja.com' && passwordCorrect) {
           const token = authService().issue({ id: user.id });
@@ -62,7 +112,9 @@ const UserController = () => {
     } = req.query;
     try {
       if (!take || !skip) {
-        return res.status(400).json({ msg: 'Bad request, you must specify pagination params' });
+        return res
+          .status(400)
+          .json({ msg: 'Bad request, you must specify pagination params' });
       }
       if (direction && direction !== 'asc' && direction !== 'desc') {
         return res.status(400).json({ msg: 'Not a valid direction' });
@@ -71,9 +123,14 @@ const UserController = () => {
         return res.status(400).json({ msg: 'Not a valid sortBy' });
       }
       if (Number(take) < 0 || Number(skip) < 0) {
-        return res.status(400).json({ msg: 'Bad request, not a valid pagination params' });
+        return res
+          .status(400)
+          .json({ msg: 'Bad request, not a valid pagination params' });
       }
-      if (Number(take) >= apps.data.length || Number(skip) >= apps.data.length) {
+      if (
+        Number(take) >= apps.data.length ||
+        Number(skip) >= apps.data.length
+      ) {
         return res.status(200).json({ total: apps.total, data: apps.data });
       }
       const arr = apps.data.slice(Number(skip), Number(skip) + Number(take));
@@ -103,7 +160,6 @@ const UserController = () => {
       return res.status(500).json({ msg: 'Internal server error' });
     }
   };
-
 
   return {
     login,
